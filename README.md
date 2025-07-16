@@ -1,10 +1,10 @@
 # Web Development Project 5 - *CryptoDash*
 
-Submitted by: **Your Name Here**
+Submitted by: **Mohamed Semah Khlifi**
 
 This web app: **A comprehensive cryptocurrency data dashboard that provides real-time market analysis with advanced filtering capabilities. Users can explore 50+ cryptocurrencies with live prices, market data, and performance metrics through an intuitive sidebar-based interface.**
 
-Time spent: **X** hours spent in total
+Time spent: **8** hours spent in total
 
 ## Required Features
 
@@ -61,14 +61,10 @@ The following **additional** features are implemented:
 
 Here's a walkthrough of implemented user stories:
 
-<img src='http://i.imgur.com/link/to/your/gif/file.gif' title='Video Walkthrough' width='' alt='Video Walkthrough' />
+https://imgur.com/a/GFf18NI
 
-<!-- Replace this with whatever GIF tool you used! -->
-GIF created with ...  
-<!-- Recommended tools:
-[Kap](https://getkap.co/) for macOS
-[ScreenToGif](https://www.screentogif.com/) for Windows
-[peek](https://github.com/phw/peek) for Linux. -->
+GIF created with ...  ScreenToGif
+
 
 ## Notes
 
@@ -89,7 +85,7 @@ GIF created with ...
 
 ## License
 
-   Copyright [yyyy] [name of copyright owner]
+   Copyright [2025] [Mohamed Semah Khlifi]
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
