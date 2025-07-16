@@ -314,13 +314,19 @@ const CryptoDash = () => {
             <select
               value={priceFilter}
               onChange={(e) => setPriceFilter(e.target.value)}
-              style={{...inputStyle, paddingLeft: '44px', cursor: 'pointer'}}
+              style={{
+                ...inputStyle,
+                paddingLeft: '44px',
+                cursor: 'pointer',
+                background: 'rgba(255, 255, 255, 0.1)',
+                color: 'white'
+              }}
             >
-              <option value="all">All Prices</option>
-              <option value="under1">Under $1</option>
-              <option value="1to100">$1 - $100</option>
-              <option value="100to1000">$100 - $1,000</option>
-              <option value="over1000">Over $1,000</option>
+              <option value="all" style={{background: '#1f2937', color: 'white'}}>All Prices</option>
+              <option value="under1" style={{background: '#1f2937', color: 'white'}}>Under $1</option>
+              <option value="1to100" style={{background: '#1f2937', color: 'white'}}>$1 - $100</option>
+              <option value="100to1000" style={{background: '#1f2937', color: 'white'}}>$100 - $1,000</option>
+              <option value="over1000" style={{background: '#1f2937', color: 'white'}}>Over $1,000</option>
             </select>
           </div>
         </div>
