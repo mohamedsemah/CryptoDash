@@ -11,6 +11,14 @@ const CryptoDash = () => {
   const [fetchStatus, setFetchStatus] = useState('');
   const [fetchProgress, setFetchProgress] = useState(0);
 
+  // Additional filter states
+  const [marketCapFilter, setMarketCapFilter] = useState('all');
+  const [changeFilter, setChangeFilter] = useState('all');
+  const [customPriceMin, setCustomPriceMin] = useState('');
+  const [customPriceMax, setCustomPriceMax] = useState('');
+  const [volumeRange, setVolumeRange] = useState([0, 100]);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+
   // Fetch cryptocurrency data with visible progress
   useEffect(() => {
     const fetchCryptoData = async () => {
@@ -66,7 +74,7 @@ const CryptoDash = () => {
     fetchCryptoData();
   }, []);
 
-  // Filter data based on search query and price filter
+  // Filter data based on all applied filters
   useEffect(() => {
     let filtered = cryptoData;
 
@@ -78,7 +86,7 @@ const CryptoDash = () => {
       );
     }
 
-    // Apply price filter
+    // Apply price filter (dropdown)
     if (priceFilter !== 'all') {
       filtered = filtered.filter(coin => {
         if (priceFilter === 'under1') return coin.current_price < 1;
@@ -89,8 +97,55 @@ const CryptoDash = () => {
       });
     }
 
+    // Apply custom price bounds filter
+    if (customPriceMin !== '' || customPriceMax !== '') {
+      filtered = filtered.filter(coin => {
+        const price = coin.current_price;
+        const minPrice = customPriceMin === '' ? 0 : parseFloat(customPriceMin);
+        const maxPrice = customPriceMax === '' ? Infinity : parseFloat(customPriceMax);
+        return price >= minPrice && price <= maxPrice;
+      });
+    }
+
+    // Apply market cap filter (radio buttons)
+    if (marketCapFilter !== 'all') {
+      filtered = filtered.filter(coin => {
+        const marketCap = coin.market_cap;
+        if (marketCapFilter === 'large') return marketCap >= 10e9; // > $10B
+        if (marketCapFilter === 'medium') return marketCap >= 1e9 && marketCap < 10e9; // $1B - $10B
+        if (marketCapFilter === 'small') return marketCap >= 100e6 && marketCap < 1e9; // $100M - $1B
+        if (marketCapFilter === 'micro') return marketCap < 100e6; // < $100M
+        return true;
+      });
+    }
+
+    // Apply 24h change filter (radio buttons)
+    if (changeFilter !== 'all') {
+      filtered = filtered.filter(coin => {
+        const change = coin.price_change_percentage_24h;
+        if (changeFilter === 'positive') return change > 0;
+        if (changeFilter === 'negative') return change < 0;
+        if (changeFilter === 'high-gain') return change > 10;
+        if (changeFilter === 'high-loss') return change < -10;
+        return true;
+      });
+    }
+
+    // Apply volume range filter (slider)
+    if (cryptoData.length > 0) {
+      const volumes = cryptoData.map(coin => coin.total_volume).sort((a, b) => a - b);
+      const minVolume = volumes[0];
+      const maxVolume = volumes[volumes.length - 1];
+      const rangeMin = minVolume + (maxVolume - minVolume) * (volumeRange[0] / 100);
+      const rangeMax = minVolume + (maxVolume - minVolume) * (volumeRange[1] / 100);
+
+      filtered = filtered.filter(coin =>
+        coin.total_volume >= rangeMin && coin.total_volume <= rangeMax
+      );
+    }
+
     setFilteredData(filtered);
-  }, [searchQuery, priceFilter, cryptoData]);
+  }, [searchQuery, priceFilter, customPriceMin, customPriceMax, marketCapFilter, changeFilter, volumeRange, cryptoData]);
 
   // Calculate summary statistics
   const calculateStats = () => {
@@ -297,38 +352,247 @@ const CryptoDash = () => {
         </div>
 
         {/* Search and Filter Controls */}
-        <div style={{display: 'flex', gap: '16px', marginBottom: '48px', flexWrap: 'wrap'}}>
-          <div style={{position: 'relative', flex: 1, minWidth: '300px'}}>
-            <Search size={20} style={{position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af'}} />
-            <input
-              type="text"
-              placeholder="Search cryptocurrencies..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              style={{...inputStyle, paddingLeft: '44px'}}
-            />
-          </div>
+        <div style={{marginBottom: '48px'}}>
+          {/* Basic Filters Row */}
+          <div style={{display: 'flex', gap: '16px', marginBottom: '24px', flexWrap: 'wrap'}}>
+            <div style={{position: 'relative', flex: 1, minWidth: '300px'}}>
+              <Search size={20} style={{position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af'}} />
+              <input
+                type="text"
+                placeholder="Search cryptocurrencies..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={{...inputStyle, paddingLeft: '44px'}}
+              />
+            </div>
 
-          <div style={{position: 'relative', minWidth: '200px'}}>
-            <Filter size={20} style={{position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af'}} />
-            <select
-              value={priceFilter}
-              onChange={(e) => setPriceFilter(e.target.value)}
+            <div style={{position: 'relative', minWidth: '200px'}}>
+              <Filter size={20} style={{position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af'}} />
+              <select
+                value={priceFilter}
+                onChange={(e) => setPriceFilter(e.target.value)}
+                style={{
+                  ...inputStyle,
+                  paddingLeft: '44px',
+                  cursor: 'pointer',
+                  background: 'rgba(255, 255, 255, 0.1)',
+                  color: 'white'
+                }}
+              >
+                <option value="all" style={{background: '#1f2937', color: 'white'}}>All Prices</option>
+                <option value="under1" style={{background: '#1f2937', color: 'white'}}>Under $1</option>
+                <option value="1to100" style={{background: '#1f2937', color: 'white'}}>$1 - $100</option>
+                <option value="100to1000" style={{background: '#1f2937', color: 'white'}}>$100 - $1,000</option>
+                <option value="over1000" style={{background: '#1f2937', color: 'white'}}>Over $1,000</option>
+              </select>
+            </div>
+
+            <button
+              onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
               style={{
                 ...inputStyle,
-                paddingLeft: '44px',
+                background: showAdvancedFilters ? 'rgba(96, 165, 250, 0.3)' : 'rgba(255, 255, 255, 0.1)',
+                border: showAdvancedFilters ? '1px solid rgba(96, 165, 250, 0.5)' : '1px solid rgba(255, 255, 255, 0.2)',
                 cursor: 'pointer',
-                background: 'rgba(255, 255, 255, 0.1)',
-                color: 'white'
+                minWidth: '180px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                fontWeight: '600'
               }}
             >
-              <option value="all" style={{background: '#1f2937', color: 'white'}}>All Prices</option>
-              <option value="under1" style={{background: '#1f2937', color: 'white'}}>Under $1</option>
-              <option value="1to100" style={{background: '#1f2937', color: 'white'}}>$1 - $100</option>
-              <option value="100to1000" style={{background: '#1f2937', color: 'white'}}>$100 - $1,000</option>
-              <option value="over1000" style={{background: '#1f2937', color: 'white'}}>Over $1,000</option>
-            </select>
+              <Filter size={16} />
+              {showAdvancedFilters ? 'Hide Filters' : 'Advanced Filters'}
+            </button>
           </div>
+
+          {/* Advanced Filters Panel */}
+          {showAdvancedFilters && (
+            <div style={{...cardStyle, padding: '32px'}}>
+              <h3 style={{fontSize: '20px', fontWeight: '600', marginBottom: '24px', color: '#e5e7eb'}}>
+                Advanced Filters - Multiple filters applied simultaneously
+              </h3>
+
+              {/* Custom Price Range Input */}
+              <div style={{marginBottom: '32px'}}>
+                <h4 style={{fontSize: '16px', fontWeight: '600', marginBottom: '12px', color: '#d1d5db'}}>
+                  Custom Price Range (Text Inputs)
+                </h4>
+                <div style={{display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap'}}>
+                  <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                    <span style={{color: '#9ca3af', fontSize: '14px'}}>Min $</span>
+                    <input
+                      type="number"
+                      placeholder="0"
+                      value={customPriceMin}
+                      onChange={(e) => setCustomPriceMin(e.target.value)}
+                      style={{...inputStyle, width: '120px'}}
+                    />
+                  </div>
+                  <span style={{color: '#9ca3af'}}>to</span>
+                  <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                    <span style={{color: '#9ca3af', fontSize: '14px'}}>Max $</span>
+                    <input
+                      type="number"
+                      placeholder="∞"
+                      value={customPriceMax}
+                      onChange={(e) => setCustomPriceMax(e.target.value)}
+                      style={{...inputStyle, width: '120px'}}
+                    />
+                  </div>
+                  {(customPriceMin || customPriceMax) && (
+                    <button
+                      onClick={() => {setCustomPriceMin(''); setCustomPriceMax('');}}
+                      style={{
+                        background: 'rgba(239, 68, 68, 0.2)',
+                        border: '1px solid rgba(239, 68, 68, 0.4)',
+                        color: '#ef4444',
+                        padding: '6px 12px',
+                        borderRadius: '6px',
+                        fontSize: '12px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Market Cap Filter (Radio Buttons) */}
+              <div style={{marginBottom: '32px'}}>
+                <h4 style={{fontSize: '16px', fontWeight: '600', marginBottom: '12px', color: '#d1d5db'}}>
+                  Market Cap Category (Radio Selection)
+                </h4>
+                <div style={{display: 'flex', gap: '24px', flexWrap: 'wrap'}}>
+                  {[
+                    {value: 'all', label: 'All Sizes'},
+                    {value: 'large', label: 'Large Cap (>$10B)'},
+                    {value: 'medium', label: 'Medium Cap ($1B-$10B)'},
+                    {value: 'small', label: 'Small Cap ($100M-$1B)'},
+                    {value: 'micro', label: 'Micro Cap (<$100M)'}
+                  ].map(option => (
+                    <label key={option.value} style={{display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: '#e5e7eb'}}>
+                      <input
+                        type="radio"
+                        name="marketCap"
+                        value={option.value}
+                        checked={marketCapFilter === option.value}
+                        onChange={(e) => setMarketCapFilter(e.target.value)}
+                        style={{accentColor: '#60a5fa'}}
+                      />
+                      <span style={{fontSize: '14px'}}>{option.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* 24h Change Filter (Radio Buttons) */}
+              <div style={{marginBottom: '32px'}}>
+                <h4 style={{fontSize: '16px', fontWeight: '600', marginBottom: '12px', color: '#d1d5db'}}>
+                  24h Price Change (Radio Selection)
+                </h4>
+                <div style={{display: 'flex', gap: '24px', flexWrap: 'wrap'}}>
+                  {[
+                    {value: 'all', label: 'All Changes'},
+                    {value: 'positive', label: 'Positive (+)'},
+                    {value: 'negative', label: 'Negative (-)'},
+                    {value: 'high-gain', label: 'High Gain (>+10%)'},
+                    {value: 'high-loss', label: 'High Loss (<-10%)'}
+                  ].map(option => (
+                    <label key={option.value} style={{display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: '#e5e7eb'}}>
+                      <input
+                        type="radio"
+                        name="change"
+                        value={option.value}
+                        checked={changeFilter === option.value}
+                        onChange={(e) => setChangeFilter(e.target.value)}
+                        style={{accentColor: '#34d399'}}
+                      />
+                      <span style={{fontSize: '14px'}}>{option.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Volume Range Slider */}
+              <div style={{marginBottom: '24px'}}>
+                <h4 style={{fontSize: '16px', fontWeight: '600', marginBottom: '12px', color: '#d1d5db'}}>
+                  Trading Volume Range (Slider)
+                </h4>
+                <div style={{display: 'flex', alignItems: 'center', gap: '16px'}}>
+                  <span style={{fontSize: '14px', color: '#9ca3af', minWidth: '60px'}}>
+                    {volumeRange[0]}% - {volumeRange[1]}%
+                  </span>
+                  <div style={{flex: 1, position: 'relative'}}>
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={volumeRange[0]}
+                      onChange={(e) => setVolumeRange([parseInt(e.target.value), volumeRange[1]])}
+                      style={{
+                        width: '100%',
+                        height: '6px',
+                        background: 'rgba(255, 255, 255, 0.2)',
+                        borderRadius: '3px',
+                        outline: 'none',
+                        cursor: 'pointer'
+                      }}
+                    />
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={volumeRange[1]}
+                      onChange={(e) => setVolumeRange([volumeRange[0], parseInt(e.target.value)])}
+                      style={{
+                        width: '100%',
+                        height: '6px',
+                        background: 'transparent',
+                        borderRadius: '3px',
+                        outline: 'none',
+                        cursor: 'pointer',
+                        marginTop: '-6px'
+                      }}
+                    />
+                  </div>
+                  <span style={{fontSize: '14px', color: '#9ca3af', minWidth: '80px'}}>
+                    Volume Range
+                  </span>
+                </div>
+              </div>
+
+              {/* Clear All Filters */}
+              <div style={{display: 'flex', justifyContent: 'center'}}>
+                <button
+                  onClick={() => {
+                    setSearchQuery('');
+                    setPriceFilter('all');
+                    setCustomPriceMin('');
+                    setCustomPriceMax('');
+                    setMarketCapFilter('all');
+                    setChangeFilter('all');
+                    setVolumeRange([0, 100]);
+                  }}
+                  style={{
+                    background: 'rgba(239, 68, 68, 0.2)',
+                    border: '1px solid rgba(239, 68, 68, 0.4)',
+                    color: '#ef4444',
+                    padding: '12px 24px',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease'
+                  }}
+                >
+                  Clear All Filters
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Data Table */}
@@ -380,6 +644,18 @@ const CryptoDash = () => {
 
         <div style={{marginTop: '24px', textAlign: 'center', fontSize: '14px', color: '#9ca3af'}}>
           Showing {filteredData.length} of {cryptoData.length} cryptocurrencies
+          {filteredData.length !== cryptoData.length && (
+            <span style={{color: '#60a5fa', marginLeft: '8px'}}>
+              (filtered by: {[
+                searchQuery && 'search',
+                priceFilter !== 'all' && 'price range',
+                (customPriceMin || customPriceMax) && 'custom price',
+                marketCapFilter !== 'all' && 'market cap',
+                changeFilter !== 'all' && '24h change',
+                (volumeRange[0] !== 0 || volumeRange[1] !== 100) && 'volume'
+              ].filter(Boolean).join(', ')})
+            </span>
+          )}
         </div>
       </div>
     </div>
