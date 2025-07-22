@@ -16,10 +16,10 @@ const Dashboard = ({
   clearAllFilters
 }) => {
 
-  // State for toggling visualizations
-  const [showCharts, setShowCharts] = useState(true);
-  const [showInsights, setShowInsights] = useState(true);
-  const [showFilterSuggestions, setShowFilterSuggestions] = useState(true);
+  // State for toggling visualizations - DEFAULT TO OFF
+  const [showCharts, setShowCharts] = useState(false);
+  const [showInsights, setShowInsights] = useState(false);
+  const [showFilterSuggestions, setShowFilterSuggestions] = useState(false);
 
   // Calculate summary statistics
   const calculateStats = () => {
