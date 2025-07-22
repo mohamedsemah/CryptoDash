@@ -24,7 +24,9 @@ const Charts = ({ cryptoData }) => {
       else marketCapRanges['Micro Cap (<$100M)']++;
     });
 
-    const pieData = Object.entries(marketCapRanges).map(([name, value]) => ({ name, value }));
+    const pieData = Object.entries(marketCapRanges)
+      .map(([name, value]) => ({ name, value }))
+      .filter(item => item.value > 0); // Only include categories with data
 
     // Top 10 Coins by Market Cap for Bar Chart
     const topCoinsData = cryptoData
@@ -40,6 +42,36 @@ const Charts = ({ cryptoData }) => {
 
   const { pieData, topCoinsData } = prepareChartData();
 
+  // Custom label function for better positioning and readability
+  const renderCustomLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, name, value }) => {
+    // Only show labels for segments that are at least 5% to avoid overcrowding
+    if (percent < 0.05) return null;
+
+    const RADIAN = Math.PI / 180;
+    const radius = innerRadius + (outerRadius - innerRadius) * 1.4; // Position labels outside the pie
+    const x = cx + radius * Math.cos(-midAngle * RADIAN);
+    const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+    return (
+      <text
+        x={x}
+        y={y}
+        fill="#ffffff"
+        textAnchor={x > cx ? 'start' : 'end'}
+        dominantBaseline="central"
+        fontSize="12"
+        fontWeight="600"
+        stroke="rgba(0,0,0,0.8)"
+        strokeWidth="0.5"
+      >
+        {`${name}: ${value}`}
+      </text>
+    );
+  };
+
+  // Color palette for pie chart
+  const pieColors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f093fb', '#43e97b'];
+
   return (
     <div style={{display: 'flex', gap: '30px', marginBottom: '30px', flexWrap: 'wrap'}}>
       {/* Market Cap Distribution Pie Chart */}
@@ -47,7 +79,7 @@ const Charts = ({ cryptoData }) => {
         ...cardStyle,
         flex: 1,
         minWidth: '400px',
-        height: '400px'
+        height: '450px' // Increased height for better label spacing
       }}>
         <h3 style={{
           fontSize: '18px',
@@ -61,19 +93,60 @@ const Charts = ({ cryptoData }) => {
           <BarChart3 size={20} />
           Market Cap Distribution
         </h3>
-        <ResponsiveContainer width="100%" height="90%">
+
+        {/* Legend - Manual implementation for better control */}
+        <div style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '15px',
+          marginBottom: '20px',
+          justifyContent: 'center'
+        }}>
+          {pieData.map((entry, index) => (
+            <div key={entry.name} style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '6px 12px',
+              background: 'rgba(255, 255, 255, 0.05)',
+              borderRadius: '8px',
+              border: `2px solid ${pieColors[index % pieColors.length]}`,
+              fontSize: '12px',
+              fontWeight: '600',
+              color: '#ffffff'
+            }}>
+              <div style={{
+                width: '12px',
+                height: '12px',
+                borderRadius: '50%',
+                background: pieColors[index % pieColors.length]
+              }}></div>
+              <span>{entry.name}: {entry.value}</span>
+            </div>
+          ))}
+        </div>
+
+        <ResponsiveContainer width="100%" height="70%">
           <PieChart>
             <Pie
               data={pieData}
               cx="50%"
               cy="50%"
-              outerRadius={120}
+              labelLine={false}
+              label={renderCustomLabel}
+              outerRadius={100}
+              innerRadius={30} // Create donut chart for better label positioning
               fill="#8884d8"
               dataKey="value"
-              label={({name, value}) => `${name}: ${value}`}
+              paddingAngle={2} // Add small gaps between segments
             >
               {pieData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={['#ff6b6b', '#4ecdc4', '#45b7d1', '#f093fb'][index % 4]} />
+                <Cell
+                  key={`cell-${index}`}
+                  fill={pieColors[index % pieColors.length]}
+                  stroke="rgba(255,255,255,0.3)"
+                  strokeWidth={1}
+                />
               ))}
             </Pie>
             <Tooltip
@@ -81,11 +154,14 @@ const Charts = ({ cryptoData }) => {
                 background: 'rgba(26, 26, 46, 0.95)',
                 border: '1px solid rgba(255, 255, 255, 0.1)',
                 borderRadius: '12px',
-                color: '#ffffff'
+                color: '#ffffff',
+                fontSize: '14px',
+                fontWeight: '600'
               }}
-            />
-            <Legend
-              wrapperStyle={{color: '#ffffff'}}
+              formatter={(value, name) => [
+                `${value} coins`,
+                name
+              ]}
             />
           </PieChart>
         </ResponsiveContainer>
@@ -96,7 +172,7 @@ const Charts = ({ cryptoData }) => {
         ...cardStyle,
         flex: 1,
         minWidth: '400px',
-        height: '400px'
+        height: '450px'
       }}>
         <h3 style={{
           fontSize: '18px',
@@ -117,28 +193,41 @@ const Charts = ({ cryptoData }) => {
               dataKey="name"
               stroke="#ffffff"
               fontSize={12}
+              angle={-45}
+              textAnchor="end"
+              height={80}
             />
             <YAxis
               stroke="#ffffff"
               fontSize={12}
-              label={{ value: 'Market Cap (Billions $)', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#ffffff' } }}
+              label={{
+                value: 'Market Cap (Billions $)',
+                angle: -90,
+                position: 'insideLeft',
+                style: { textAnchor: 'middle', fill: '#ffffff' }
+              }}
             />
             <Tooltip
               contentStyle={{
                 background: 'rgba(26, 26, 46, 0.95)',
                 border: '1px solid rgba(255, 255, 255, 0.1)',
                 borderRadius: '12px',
-                color: '#ffffff'
+                color: '#ffffff',
+                fontSize: '14px',
+                fontWeight: '600'
               }}
               formatter={(value, name) => [
-                name === 'marketCap' ? `$${value.toFixed(2)}B` : `${value.toFixed(2)}%`,
-                name === 'marketCap' ? 'Market Cap' : '24h Change'
+                `$${value.toFixed(2)}B`,
+                'Market Cap'
               ]}
+              labelFormatter={(label) => `${label}`}
             />
             <Bar
               dataKey="marketCap"
               fill="url(#marketCapGradient)"
               radius={[4, 4, 0, 0]}
+              stroke="rgba(78, 205, 196, 0.3)"
+              strokeWidth={1}
             />
             <defs>
               <linearGradient id="marketCapGradient" x1="0" y1="0" x2="0" y2="1">
