@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Filter, Layers, Zap } from 'lucide-react';
+import { Search, Filter, Layers } from 'lucide-react';
 import { inputStyle } from '../styles/commonStyles';
 
 const Sidebar = ({
@@ -54,32 +54,7 @@ const Sidebar = ({
         <p style={{fontSize: '14px', margin: 0, opacity: 0.8}}>Real-time crypto analytics</p>
       </div>
 
-      {/* Demo Button */}
-      <button
-        onClick={() => window.location.reload()}
-        style={{
-          width: '100%',
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          border: 'none',
-          borderRadius: '15px',
-          padding: '15px',
-          color: '#ffffff',
-          fontSize: '16px',
-          fontWeight: '600',
-          cursor: 'pointer',
-          marginBottom: '30px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '10px',
-          transition: 'all 0.3s ease'
-        }}
-        onMouseEnter={(e) => e.target.style.transform = 'translateY(-2px)'}
-        onMouseLeave={(e) => e.target.style.transform = 'translateY(0)'}
-      >
-        <Zap size={20} />
-        Demo useEffect + async/await
-      </button>
+
 
       {/* Search */}
       <div style={{marginBottom: '25px'}}>
