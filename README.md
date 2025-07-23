@@ -81,6 +81,10 @@ GIF created with ScreenToGif
 
 - **Component Architecture**: Refactoring from monolithic component to modular structure while maintaining functionality. Successfully separated concerns into focused components and custom hooks.
 
+- **API Reliability Issues**: Frequent "Failed to fetch" errors due to CoinGecko API rate limiting and network timeouts. Implemented robust retry logic with exponential backoff, rate limit detection (429 status), and user-friendly error handling with troubleshooting guidance.
+
+- **Route Loading State Bug**: "Coin not found" error flashed briefly when navigating directly to coin detail URLs before data loaded. Fixed by improving loading state logic to distinguish between missing data and genuinely non-existent coins.
+
 **Technical Implementations:**
 - Used CoinGecko API for real-time cryptocurrency data with comprehensive market information
 - Implemented React Router v6 for modern routing with hooks-based navigation
@@ -88,6 +92,8 @@ GIF created with ScreenToGif
 - Created intelligent market analysis algorithms for sentiment and volatility tracking
 - Developed responsive design patterns for optimal viewing across device sizes
 - Built modular component architecture following React best practices
+- Added automatic retry mechanism with exponential backoff for API reliability
+- Implemented rate limit handling and graceful error recovery systems
 
 ## License
 
