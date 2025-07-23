@@ -34,32 +34,8 @@ const CoinDetail = ({ cryptoData }) => {
     if (id) fetchCoinDetails();
   }, [id]);
 
-  if (!coin && !loading) {
-    return (
-      <div style={{...containerStyle, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-        <div style={{textAlign: 'center'}}>
-          <h2 style={{fontSize: '24px', marginBottom: '20px'}}>Coin not found</h2>
-          <button
-            onClick={() => navigate('/')}
-            style={{
-              background: 'linear-gradient(135deg, #4ecdc4 0%, #45b7d1 100%)',
-              border: 'none',
-              color: 'white',
-              padding: '12px 24px',
-              borderRadius: '12px',
-              fontSize: '16px',
-              fontWeight: '600',
-              cursor: 'pointer'
-            }}
-          >
-            Back to Dashboard
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  if (loading || error) {
+  // Show loading while either coin data is missing OR details are loading
+  if (!coin || loading) {
     return (
       <div style={containerStyle}>
         <div style={{display: 'flex', minHeight: '100vh'}}>
@@ -85,14 +61,69 @@ const CoinDetail = ({ cryptoData }) => {
           <div style={{flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
             <div style={cardStyle}>
               <div style={{textAlign: 'center'}}>
-                <div style={{fontSize: '40px', marginBottom: '20px'}}>
-                  {loading ? '⏳' : '❌'}
-                </div>
+                <div style={{fontSize: '40px', marginBottom: '20px'}}>⏳</div>
                 <h2 style={{fontSize: '24px', marginBottom: '10px'}}>
-                  {loading ? 'Loading coin details...' : `Error: ${error}`}
+                  {!coin ? 'Loading cryptocurrency data...' : 'Loading coin details...'}
                 </h2>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Only show "Coin not found" if we have data but can't find the specific coin
+  if (cryptoData.length > 0 && !coin && !loading) {
+    return (
+      <div style={{...containerStyle, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+        <div style={{textAlign: 'center'}}>
+          <h2 style={{fontSize: '24px', marginBottom: '20px'}}>Coin not found</h2>
+          <button
+            onClick={() => navigate('/')}
+            style={{
+              background: 'linear-gradient(135deg, #4ecdc4 0%, #45b7d1 100%)',
+              border: 'none',
+              color: 'white',
+              padding: '12px 24px',
+              borderRadius: '12px',
+              fontSize: '16px',
+              fontWeight: '600',
+              cursor: 'pointer'
+            }}
+          >
+            Back to Dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div style={containerStyle}>
+        <div style={{display: 'flex', minHeight: '100vh'}}>
+          <Sidebar
+            searchQuery=""
+            setSearchQuery={() => {}}
+            priceFilter="all"
+            setPriceFilter={() => {}}
+            marketCapFilter="all"
+            setMarketCapFilter={() => {}}
+            changeFilter="all"
+            setChangeFilter={() => {}}
+            customPriceMin=""
+            setCustomPriceMin={() => {}}
+            customPriceMax=""
+            setCustomPriceMax={() => {}}
+            volumeRange={[0, 100]}
+            setVolumeRange={() => {}}
+            showAdvancedFilters={false}
+            setShowAdvancedFilters={() => {}}
+            clearAllFilters={() => {}}
+          />
+          <div style={{flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+            <div style={{fontSize: '24px', color: '#ff6b6b'}}>Error: {error}</div>
           </div>
         </div>
       </div>
