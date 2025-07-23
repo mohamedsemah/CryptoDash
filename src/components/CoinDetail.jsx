@@ -16,16 +16,48 @@ const CoinDetail = ({ cryptoData }) => {
 
   useEffect(() => {
     const fetchCoinDetails = async () => {
+      const fetchWithRetry = async (url, maxRetries = 3, delay = 1000) => {
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+          try {
+            const response = await fetch(url, {
+              headers: {
+                'Accept': 'application/json',
+              },
+            });
+
+            if (response.status === 429) {
+              // Rate limited - wait longer
+              await new Promise(resolve => setTimeout(resolve, delay * attempt));
+              continue;
+            }
+
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            return response;
+          } catch (err) {
+            if (attempt === maxRetries) {
+              throw new Error(`Failed after ${maxRetries} attempts: ${err.message}`);
+            }
+
+            await new Promise(resolve => setTimeout(resolve, delay));
+          }
+        }
+      };
+
       try {
         setLoading(true);
-        const response = await fetch(`https://api.coingecko.com/api/v3/coins/${id}?localization=false&tickers=false&market_data=true&community_data=true&developer_data=false&sparkline=true`);
+        setError(null);
 
-        if (!response.ok) throw new Error('Failed to fetch coin details');
+        const response = await fetchWithRetry(
+          `https://api.coingecko.com/api/v3/coins/${id}?localization=false&tickers=false&market_data=true&community_data=true&developer_data=false&sparkline=true`
+        );
 
         const data = await response.json();
         setCoinDetails(data);
       } catch (err) {
-        setError(err.message);
+        setError(`${err.message}. Please try refreshing the page or check your internet connection.`);
       } finally {
         setLoading(false);
       }

@@ -85,7 +85,49 @@ const Dashboard = ({
   if (error) {
     return (
       <div style={{...containerStyle, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-        <div style={{fontSize: '24px', color: '#ff6b6b'}}>Error: {error}</div>
+        <div style={{
+          ...cardStyle,
+          textAlign: 'center',
+          maxWidth: '500px',
+          background: 'linear-gradient(135deg, rgba(255, 107, 107, 0.1) 0%, rgba(255, 107, 107, 0.05) 100%)'
+        }}>
+          <div style={{fontSize: '60px', marginBottom: '20px'}}>🔌</div>
+          <h2 style={{fontSize: '24px', fontWeight: '700', marginBottom: '15px', color: '#ff6b6b'}}>
+            Connection Error
+          </h2>
+          <p style={{fontSize: '16px', color: 'rgba(255,255,255,0.8)', marginBottom: '25px', lineHeight: '1.5'}}>
+            {error}
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            style={{
+              background: 'linear-gradient(135deg, #4ecdc4 0%, #45b7d1 100%)',
+              border: 'none',
+              color: 'white',
+              padding: '12px 24px',
+              borderRadius: '12px',
+              fontSize: '16px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease'
+            }}
+            onMouseEnter={(e) => e.target.style.transform = 'translateY(-2px)'}
+            onMouseLeave={(e) => e.target.style.transform = 'translateY(0)'}
+          >
+            🔄 Try Again
+          </button>
+          <div style={{
+            marginTop: '20px',
+            fontSize: '14px',
+            color: 'rgba(255,255,255,0.6)',
+            lineHeight: '1.4'
+          }}>
+            <p style={{margin: '0 0 8px 0'}}>💡 <strong>Troubleshooting:</strong></p>
+            <p style={{margin: '0 0 4px 0'}}>• Check your internet connection</p>
+            <p style={{margin: '0 0 4px 0'}}>• The API might be temporarily overloaded</p>
+            <p style={{margin: 0}}>• Try refreshing in a few seconds</p>
+          </div>
+        </div>
       </div>
     );
   }
